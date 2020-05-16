@@ -1,0 +1,72 @@
+--[[重载命令]]
+SlashCmdList["RELOADUI"] = function() ReloadUI() end 
+SLASH_RELOADUI1 = "/rl"
+
+--[[自动对话NPC]]
+
+local talk = CreateFrame("Frame")
+talk:SetScript("OnEvent", function (event, ...)
+local name, realm = UnitName("target")
+if not IsAltKeyDown() then --按ALT 取消自动对话
+  if name == "Horde Warbringer" or name == "Alliance Brigadier General" then
+    SelectGossipAvailableQuest(3)-- 自动交ALX牌子
+    CompleteQuest()
+    GetQuestReward()
+    elseif name == "Salfa" then
+    SelectGossipAvailableQuest(1)-- 自动交木喉珠子
+    CompleteQuest()
+    GetQuestReward()
+
+    elseif GetNumGossipOptions() == 1 then
+     SelectGossipOption(1)
+  end
+end
+end)
+
+talk:RegisterEvent("GOSSIP_SHOW")
+talk:RegisterEvent("QUEST_PROGRESS")
+talk:RegisterEvent("QUEST_COMPLETE")
+
+--[[自动最远视角设置]]
+
+MAX = CreateFrame("Frame")
+MAX:RegisterEvent("PLAYER_ENTERING_WORLD")
+MAX:SetScript("OnEvent", function(self, event)
+if event == "PLAYER_ENTERING_WORLD" and not InCombatLockdown() then
+SetCVar("cameraDistanceMaxZoomFactor", 4)
+end
+end)
+
+--[[自动追踪]]
+
+--显示优先级, 双true, 只能显示采草
+t_m = true --追踪矿点 (false 为不追踪)
+t_h = true --追踪草药 (false 为不追踪)
+
+local track = CreateFrame("Frame")
+track:RegisterEvent("PLAYER_ENTERING_WORLD")
+track:RegisterEvent("PLAYER_UNGHOST")
+
+local mining, herbing = IsPlayerSpell(2580), IsPlayerSpell(2383)
+track:SetScript("OnEvent", function(self, event)
+if mining and t_m then 
+    CastSpellByID(2580) --print("矿点")
+elseif herbing and t_h then 
+    CastSpellByID(2383) --print("草药")
+end
+end)
+
+--[[取消自动交易]]
+
+local block = CreateFrame("Frame")
+block:RegisterEvent("UNIT_TARGET")
+block:RegisterEvent("MAIL_SHOW")
+block:RegisterEvent("MAIL_CLOSED")
+block:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+block:SetScript("OnEvent", function(self, event)
+if event == "MAIL_CLOSED" or UnitExists("target") then
+     SetCVar("blockTrades",0)
+else SetCVar("blockTrades",1)
+end
+end)
